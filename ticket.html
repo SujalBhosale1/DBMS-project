@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Ticket Booking</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="ticket-container">
+        <h4>Book Your Flight Ticket</h4>
+        <form id="ticketForm">
+            <input type="text" id="from" placeholder="From" required>
+            <input type="text" id="to" placeholder="To" required>
+            <input type="date" id="travelDate" required><br><br><br>
+
+            <h2>Class type:</h2>
+            <input type="radio" id="economy" name="classType" value="Economy Class">
+            <label for="economy">Economy Class</label><br>
+            <input type="radio" id="premium" name="classType" value="Premium Economy">
+            <label for="premium">Premium Economy</label><br>
+            <input type="radio" id="business" name="classType" value="Business Class">
+            <label for="business">Business Class</label><br>
+            <input type="radio" id="first" name="classType" value="First Class">
+            <label for="first">First Class</label><br><br><br>        
+
+            <h2>Price:</h2>
+            <input type="text" id="price" readonly style="display: none;"> <!-- Initially hidden -->
+
+            <button type="submit">Confirm Booking</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const ticketForm = document.getElementById("ticketForm");
+            const priceInput = document.getElementById("price");
+
+            // Function to generate a random price within a given range
+            function getRandomPrice(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            // Price ranges for different class types
+            const classPriceRanges = {
+                "Economy Class": [5000, 10000],
+                "Premium Economy": [10000, 20000],
+                "Business Class": [20000, 30000],
+                "First Class": [30000, 40000]
+            };
+
+            // Update price when class type is selected
+            document.querySelectorAll('input[name="classType"]').forEach(radio => {
+                radio.addEventListener("change", function() {
+                    const [min, max] = classPriceRanges[this.value];
+                    const randomPrice = getRandomPrice(min, max);
+                    priceInput.value = `₹${randomPrice}`;
+                    priceInput.style.display = "block"; // Show price
+                });
+            });
+
+            // Handle form submission
+            ticketForm.addEventListener("submit", async function(event) {
+    event.preventDefault();
+    
+    const bookingData = {
+        from: document.getElementById("from").value.trim(),
+        to: document.getElementById("to").value.trim(),
+        travelDate: document.getElementById("travelDate").value,
+        classType: document.querySelector('input[name="classType"]:checked')?.value,
+        price: priceInput.value
+    };
+
+    if (!bookingData.classType) {
+        alert("Please select a class type.");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost:5000/book-ticket", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bookingData)
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            alert(`✅ ${data.message}\n\nFrom: ${bookingData.from}\nTo: ${bookingData.to}\nDate: ${bookingData.travelDate}\nClass: ${bookingData.classType}\nPrice: ${bookingData.price}`);
+            ticketForm.reset();
+            priceInput.value = "";
+            priceInput.style.display = "none"; 
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    } catch (error) {
+        console.error("❌ Error:", error);
+        alert("❌ Error booking ticket. Try again later.");
+    }
+});
+            
+        });
+    </script>
+</body>
+</html>

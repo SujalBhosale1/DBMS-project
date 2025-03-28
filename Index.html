@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Booking Login</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="server.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="login-box">
+            <h2>✈ Flight Booking Login</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <input type="text" id="name" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <input type="number" id="age" placeholder="Age" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn">Register</button>
+            </form>
+            <p id="message"></p>
+        </div>
+    </div>
+<script>
+    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        
+        const userData = {
+            name: document.getElementById("name").value.trim(),
+            age: document.getElementById("age").value,
+            username: document.getElementById("username").value.trim(),
+            password: document.getElementById("password").value
+        };
+    
+        const messageElement = document.getElementById("message");
+    
+        try {
+            const response = await fetch("http://localhost:5000/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(userData)
+            });
+    
+            const data = await response.json(); 
+            console.log("Server Response:", data); // Debugging
+    
+            if (response.ok) {
+                messageElement.textContent = "✅ " + data.message;
+                messageElement.style.color = "green";
+                messageElement.style.display = "block";
+                document.getElementById("loginForm").reset();
+    
+                if (data.message === "User Registered Successfully") {
+                    localStorage.setItem("userAge", userData.age); 
+                    console.log("Redirecting to ticket.html...");
+                    setTimeout(() => {
+                        window.location.href = "ticket.html"; // Redirect after 1 sec
+                    }, 1000);
+                }
+            } else {
+                messageElement.textContent = "❌ " + data.message;
+                messageElement.style.color = "red";
+                messageElement.style.display = "block";
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            messageElement.textContent = "❌ Error connecting to the server";
+            messageElement.style.color = "red";
+            messageElement.style.display = "block";
+        }
+    });
+</script>    
+
+</body>
+</html>
